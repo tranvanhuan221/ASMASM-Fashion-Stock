@@ -1,0 +1,122 @@
+<div class="card">
+  <div class="card-header">
+    <div class="d-flex align-items-center gap-3">
+      <i class="fa-solid fa-truck text-muted"></i>
+      <h3 style="margin: 0;">Nhà Cung Cấp</h3>
+    </div>
+    {{#isManagerOrAdmin user.role}}
+    <button class="btn btn-primary" onclick="openModal('addSupplierModal')">
+      <i class="fa-solid fa-plus"></i> Thêm Nhà Cung Cấp
+    </button>
+    {{/isManagerOrAdmin}}
+  </div>
+  
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Tên nhà cung cấp</th>
+          <th>Số điện thoại</th>
+          <th>Email</th>
+          <th>Địa chỉ</th>
+          <th>Trạng thái</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each suppliers}}
+        <tr>
+          <td style="font-weight: 500; color: var(--accent-primary);">{{this.name}}</td>
+          <td>{{this.phone}}</td>
+          <td>{{this.email}}</td>
+          <td>{{truncate this.address 30}}</td>
+          <td>
+            {{#if this.isActive}}
+            <span class="badge badge-success">Đang hợp tác</span>
+            {{else}}
+            <span class="badge badge-danger">Ngừng hợp tác</span>
+            {{/if}}
+          </td>
+        </tr>
+        {{else}}
+        <tr>
+          <td colspan="5" class="text-center text-muted">Chưa có nhà cung cấp nào</td>
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Add Supplier Modal -->
+<div id="addSupplierModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Thêm Nhà Cung Cấp</h3>
+      <span class="close-modal" onclick="closeModal('addSupplierModal')">&times;</span>
+    </div>
+    <div class="modal-body">
+      <form id="formAddSupplier">
+        <div class="form-group">
+          <label class="form-label">Tên nhà cung cấp</label>
+          <input type="text" class="form-control" name="name" required>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+          <div class="form-group">
+            <label class="form-label">Số điện thoại</label>
+            <input type="text" class="form-control" name="phone">
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input type="email" class="form-control" name="email">
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Địa chỉ</label>
+          <input type="text" class="form-control" name="address">
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('addSupplierModal')">Hủy</button>
+      <button class="btn btn-primary" onclick="submitSupplier()">Lưu lại</button>
+    </div>
+  </div>
+</div>
+
+{{#section 'script'}}
+<script>
+  function openModal(id) {
+    document.getElementById(id).style.display = 'block';
+  }
+  
+  function closeModal(id) {
+    document.getElementById(id).style.display = 'none';
+  }
+  
+  async function submitSupplier() {
+    const form = document.getElementById('formAddSupplier');
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData);
+    
+    try {
+      const res = await fetch('/api/v1/suppliers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      
+      const result = await res.json();
+      if(result.success) {
+        window.location.reload();
+      } else {
+        alert(result.message);
+      }
+    } catch(err) {
+      alert('Có lỗi xảy ra');
+    }
+  }
+</script>
+{{/section}}

@@ -1,0 +1,44 @@
+<div class="card">
+  <div class="card-header">
+    <div class="d-flex align-items-center gap-3">
+      <i class="fa-solid fa-arrow-right-to-bracket text-muted"></i>
+      <h3 style="margin: 0;">Lịch sử Nhập kho</h3>
+    </div>
+    <a href="/inventory/create" class="btn btn-primary">
+      <i class="fa-solid fa-plus"></i> Tạo Phiếu Nhập
+    </a>
+  </div>
+  
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Mã phiếu</th>
+          <th>Ngày nhập</th>
+          <th>Loại nhập</th>
+          <th>Nhà cung cấp</th>
+          <th>Tổng tiền</th>
+          <th>Người tạo</th>
+          <th>Trạng thái</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each receipts}}
+        <tr>
+          <td><a href="/inventory/{{this._id}}" style="color: var(--accent-primary); font-weight: 600; text-decoration: none;">{{this.receiptCode}}</a></td>
+          <td>{{formatDateTime this.importDate}}</td>
+          <td>{{{importTypeBadge this.type}}}</td>
+          <td>{{this.supplier.name}}</td>
+          <td style="font-weight: 600; color: var(--success);">{{formatCurrency this.totalAmount}}</td>
+          <td>{{this.user.fullName}}</td>
+          <td>{{{statusBadge this.status}}}</td>
+        </tr>
+        {{else}}
+        <tr>
+          <td colspan="7" class="text-center text-muted">Chưa có phiếu nhập nào</td>
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -1,0 +1,11 @@
+/* =============================================================
+   GENZ FASHION STORE - MAIN CSS ENTRY POINT
+   File: src/styles/index.css
+   Description: Imports all CSS modules in correct order
+   ============================================================= */
+
+@import './base.css';
+@import './layout.css';
+@import './product.css';
+@import './cart.css';
+@import './admin.css';

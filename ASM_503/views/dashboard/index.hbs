@@ -1,0 +1,93 @@
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-icon" style="background: var(--info-bg); color: var(--info);">
+      <i class="fa-solid fa-tags"></i>
+    </div>
+    <div class="stat-info">
+      <div class="stat-title">Tổng sản phẩm</div>
+      <div class="stat-value">{{formatNumber stats.totalProducts}}</div>
+    </div>
+    <i class="fa-solid fa-tags stat-bg-icon"></i>
+  </div>
+  
+  <div class="stat-card">
+    <div class="stat-icon" style="background: var(--warning-bg); color: var(--warning);">
+      <i class="fa-solid fa-cubes"></i>
+    </div>
+    <div class="stat-info">
+      <div class="stat-title">Tồn kho hiện tại</div>
+      <div class="stat-value">{{formatNumber stats.totalStock}}</div>
+    </div>
+    <i class="fa-solid fa-cubes stat-bg-icon"></i>
+  </div>
+  
+  <div class="stat-card">
+    <div class="stat-icon" style="background: var(--success-bg); color: var(--success);">
+      <i class="fa-solid fa-hand-holding-dollar"></i>
+    </div>
+    <div class="stat-info">
+      <div class="stat-title">Doanh thu tháng này</div>
+      <div class="stat-value">{{formatCurrency stats.currentMonthRevenue}}</div>
+    </div>
+    <i class="fa-solid fa-hand-holding-dollar stat-bg-icon"></i>
+  </div>
+  
+  <div class="stat-card">
+    <div class="stat-icon" style="background: var(--accent-glow); color: var(--accent-primary);">
+      <i class="fa-solid fa-chart-line"></i>
+    </div>
+    <div class="stat-info">
+      <div class="stat-title">Lợi nhuận tháng này</div>
+      <div class="stat-value">{{formatCurrency stats.currentMonthProfit}}</div>
+    </div>
+    <i class="fa-solid fa-chart-line stat-bg-icon"></i>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h3>Hoạt động gần đây</h3>
+  </div>
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Loại</th>
+          <th>Mã phiếu</th>
+          <th>Ngày giờ</th>
+          <th>Đối tác</th>
+          <th>Tổng tiền</th>
+          <th>Trạng thái</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each activities}}
+        <tr>
+          <td>{{{typeBadge this.type}}}</td>
+          <td>
+            {{#if (eq this.type 'import')}}
+              <a href="/inventory/{{this._id}}" style="color: var(--accent-primary); font-weight: 500; text-decoration: none;">{{this.receiptCode}}</a>
+            {{else}}
+              <a href="/export/{{this._id}}" style="color: var(--accent-primary); font-weight: 500; text-decoration: none;">{{this.receiptCode}}</a>
+            {{/if}}
+          </td>
+          <td>{{formatDateTime this.date}}</td>
+          <td>
+            {{#if (eq this.type 'import')}}
+              {{this.supplier.name}}
+            {{else}}
+              {{this.customer.name}}
+            {{/if}}
+          </td>
+          <td style="font-weight: 600;">{{formatCurrency this.totalAmount}}</td>
+          <td>{{{statusBadge this.status}}}</td>
+        </tr>
+        {{else}}
+        <tr>
+          <td colspan="6" class="text-center text-muted">Chưa có hoạt động nào</td>
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+</div>

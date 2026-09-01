@@ -1,0 +1,49 @@
+<div class="page-header">
+  <h2>{{product.name}}</h2>
+  <div class="btn-group">
+    <a href="/products/{{product.id}}/edit" class="btn btn-warning btn-sm">✏️ Sửa</a>
+    <a href="/products" class="btn btn-outline btn-sm">← Quay lại</a>
+  </div>
+</div>
+
+<div class="detail-grid">
+  <div>
+    {{#if product.image}}
+    <img src="{{product.image}}" alt="{{product.name}}" class="detail-image">
+    {{else}}
+    <div class="detail-image" style="display:flex;align-items:center;justify-content:center;font-size:4rem;background:var(--bg-tertiary);">👕</div>
+    {{/if}}
+  </div>
+  <div class="card detail-info">
+    <div class="detail-row"><span class="detail-label">SKU</span><span class="detail-value"><strong>{{product.sku}}</strong></span></div>
+    <div class="detail-row"><span class="detail-label">Danh mục</span><span class="detail-value">{{#if product.category}}{{product.category.name}}{{else}}-{{/if}}</span></div>
+    <div class="detail-row"><span class="detail-label">Nhà cung cấp</span><span class="detail-value">{{#if product.supplier}}{{product.supplier.name}}{{else}}-{{/if}}</span></div>
+    <div class="detail-row"><span class="detail-label">Size</span><span class="detail-value">{{product.size}}</span></div>
+    <div class="detail-row"><span class="detail-label">Màu sắc</span><span class="detail-value">{{product.color}}</span></div>
+    <div class="detail-row"><span class="detail-label">Chất liệu</span><span class="detail-value">{{product.material}}</span></div>
+    <div class="detail-row"><span class="detail-label">Giá nhập</span><span class="detail-value">{{formatCurrency product.importPrice}}</span></div>
+    <div class="detail-row"><span class="detail-label">Giá bán</span><span class="detail-value">{{formatCurrency product.exportPrice}}</span></div>
+    <div class="detail-row"><span class="detail-label">Tồn kho</span><span class="detail-value"><strong>{{product.quantity}}</strong> {{{stockBadge product.quantity product.minQuantity}}}</span></div>
+    <div class="detail-row"><span class="detail-label">Mô tả</span><span class="detail-value">{{product.description}}</span></div>
+  </div>
+</div>
+
+{{#if product.transactions.length}}
+<div class="card mt-3">
+  <h3 class="mb-2">📦 Lịch sử nhập/xuất kho</h3>
+  <table>
+    <thead><tr><th>Ngày</th><th>Loại</th><th>Số lượng</th><th>Đơn giá</th><th>Thành tiền</th></tr></thead>
+    <tbody>
+      {{#each product.transactions}}
+      <tr>
+        <td>{{formatDateTime this.transactionDate}}</td>
+        <td>{{{typeBadge this.type}}}</td>
+        <td>{{this.quantity}}</td>
+        <td>{{formatCurrency this.unitPrice}}</td>
+        <td>{{formatCurrency this.totalAmount}}</td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+</div>
+{{/if}}

@@ -1,0 +1,15 @@
+<div class="page-header"><h2>{{#if customer}}✏️ Sửa KH{{else}}+ Thêm khách hàng{{/if}}</h2><a href="/customers" class="btn btn-outline">← Quay lại</a></div>
+<div class="card">
+  <form action="{{#if customer}}/customers/{{customer.id}}{{else}}/customers{{/if}}" method="POST">
+    <div class="form-row">
+      <div class="form-group"><label for="name">Tên KH *</label><input type="text" id="name" name="name" class="form-control" required value="{{customer.name}}"></div>
+      <div class="form-group"><label for="type">Loại khách hàng</label><select id="type" name="type" class="form-control"><option value="retail" {{selected customer.type "retail"}}>Bán lẻ</option><option value="wholesale" {{selected customer.type "wholesale"}}>Bán sỉ</option></select></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label for="phone">Điện thoại</label><input type="text" id="phone" name="phone" class="form-control" value="{{customer.phone}}"></div>
+      <div class="form-group"><label for="email">Email</label><input type="email" id="email" name="email" class="form-control" value="{{customer.email}}"></div>
+    </div>
+    <div class="form-group"><label for="address">Địa chỉ</label><textarea id="address" name="address" class="form-control" rows="2">{{customer.address}}</textarea></div>
+    <div class="form-actions"><button type="submit" class="btn btn-primary">💾 {{#if customer}}Cập nhật{{else}}Tạo mới{{/if}}</button><a href="/customers" class="btn btn-outline">Hủy</a></div>
+  </form>
+</div>

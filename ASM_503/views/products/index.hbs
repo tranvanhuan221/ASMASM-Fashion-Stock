@@ -1,0 +1,154 @@
+<div class="card">
+  <div class="card-header">
+    <div class="d-flex align-items-center gap-3">
+      <i class="fa-solid fa-tags text-muted"></i>
+      <h3 style="margin: 0;">Danh sách Sản phẩm</h3>
+    </div>
+    {{#isManagerOrAdmin user.role}}
+    <button class="btn btn-primary" onclick="openModal('addProductModal')">
+      <i class="fa-solid fa-plus"></i> Thêm Sản phẩm
+    </button>
+    {{/isManagerOrAdmin}}
+  </div>
+  
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>STT</th>
+          <th>Hình ảnh</th>
+          <th>Tên sản phẩm</th>
+          <th>Danh mục</th>
+          <th>Kích thước</th>
+          <th>Khối lượng</th>
+          <th>Giá bán</th>
+          <th>Tồn kho</th>
+          <th>Trạng thái</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each products}}
+        <tr>
+          <td>{{inc @index}}</td>
+          <td>
+            <div style="width: 40px; height: 40px; border-radius: var(--radius-sm); overflow: hidden; background-color: var(--bg-primary); display: flex; align-items: center; justify-content: center;">
+              {{#if this.image}}
+              <img src="{{this.image}}" alt="{{this.name}}" style="width: 100%; height: 100%; object-fit: cover;">
+              {{else}}
+              <i class="fa-solid fa-image text-muted"></i>
+              {{/if}}
+            </div>
+          </td>
+          <td style="font-weight: 500;">
+            {{this.name}}
+            <br><small class="text-muted">SKU: {{this.sku}}</small>
+          </td>
+          <td>{{this.category.name}}</td>
+          <td>{{this.size}}</td>
+          <td>{{this.weight}}g</td>
+          <td style="color: var(--success); font-weight: 600;">{{formatCurrency this.price}}</td>
+          <td>
+            {{{stockBadge this.quantity 10}}}
+            <span style="margin-left: 5px; font-weight: 600;">{{formatNumber this.quantity}}</span>
+          </td>
+          <td>
+            {{#if this.isActive}}
+            <span class="badge badge-success">Hoạt động</span>
+            {{else}}
+            <span class="badge badge-danger">Ngừng bán</span>
+            {{/if}}
+          </td>
+        </tr>
+        {{else}}
+        <tr>
+          <td colspan="9" class="text-center text-muted">Chưa có sản phẩm nào</td>
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Add Product Modal -->
+<div id="addProductModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Thêm Sản phẩm Mới</h3>
+      <span class="close-modal" onclick="closeModal('addProductModal')">&times;</span>
+    </div>
+    <div class="modal-body">
+      <form id="formAddProduct">
+        <div class="form-group">
+          <label class="form-label">Tên sản phẩm</label>
+          <input type="text" class="form-control" name="name" required>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+          <div class="form-group">
+            <label class="form-label">Mã SKU</label>
+            <input type="text" class="form-control" name="sku" required placeholder="Vd: AT-001">
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Danh mục</label>
+            <select class="form-control form-select" name="category" required>
+              <option value="">-- Chọn danh mục --</option>
+              {{#each categories}}
+              <option value="{{this._id}}">{{this.name}}</option>
+              {{/each}}
+            </select>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Giá bán dự kiến (VNĐ)</label>
+          <input type="number" class="form-control" name="price" required min="0">
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Mô tả</label>
+          <textarea class="form-control" name="description" rows="3"></textarea>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('addProductModal')">Hủy</button>
+      <button class="btn btn-primary" onclick="submitProduct()">Lưu lại</button>
+    </div>
+  </div>
+</div>
+
+{{#section 'script'}}
+<script>
+  function openModal(id) {
+    document.getElementById(id).style.display = 'block';
+  }
+  
+  function closeModal(id) {
+    document.getElementById(id).style.display = 'none';
+  }
+  
+  async function submitProduct() {
+    const form = document.getElementById('formAddProduct');
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData);
+    
+    try {
+      const res = await fetch('/api/v1/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      
+      const result = await res.json();
+      if(result.success) {
+        window.location.reload();
+      } else {
+        alert(result.message);
+      }
+    } catch(err) {
+      alert('Có lỗi xảy ra');
+    }
+  }
+</script>
+{{/section}}

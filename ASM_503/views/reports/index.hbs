@@ -1,0 +1,261 @@
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div class="card mb-4">
+  <div class="card-header">
+    <div class="d-flex justify-content-between align-items-center w-100">
+      <h3 style="margin: 0;"><i class="fa-solid fa-chart-bar text-muted"></i> Báo cáo Doanh thu & Lợi nhuận</h3>
+      
+      <div class="d-flex gap-2">
+        <input type="date" id="startDate" class="form-control" style="width: 150px; padding: 6px 12px;">
+        <input type="date" id="endDate" class="form-control" style="width: 150px; padding: 6px 12px;">
+        <button class="btn btn-primary" onclick="loadReportData()">Lọc</button>
+      </div>
+    </div>
+  </div>
+  
+  <div class="stats-grid mb-4" style="padding: 20px;">
+    <div class="stat-card" style="background: var(--info-bg);">
+      <div class="stat-info">
+        <div class="stat-title text-info">Tổng đơn xuất</div>
+        <div class="stat-value" id="totalOrders">0</div>
+      </div>
+    </div>
+    
+    <div class="stat-card" style="background: var(--success-bg);">
+      <div class="stat-info">
+        <div class="stat-title text-success">Tổng Doanh Thu</div>
+        <div class="stat-value" id="totalRevenue">0 ₫</div>
+      </div>
+    </div>
+    
+    <div class="stat-card" style="background: var(--accent-glow);">
+      <div class="stat-info">
+        <div class="stat-title" style="color: var(--accent-primary);">Tổng Lợi Nhuận</div>
+        <div class="stat-value" id="totalProfit">0 ₫</div>
+      </div>
+    </div>
+  </div>
+  
+  <div style="padding: 20px; height: 400px;">
+    <canvas id="revenueChart"></canvas>
+  </div>
+</div>
+
+<div class="row" style="display: flex; gap: 30px;">
+  <!-- Top Products -->
+  <div class="card" style="flex: 1;">
+    <div class="card-header">
+      <h3 style="margin: 0;"><i class="fa-solid fa-trophy text-warning"></i> Top Sản phẩm Bán chạy</h3>
+    </div>
+    <div class="table-responsive">
+      <table class="table" id="topProductsTable">
+        <thead>
+          <tr>
+            <th>SKU</th>
+            <th>Tên SP</th>
+            <th>SL Đã bán</th>
+            <th>Lợi nhuận</th>
+          </tr>
+        </thead>
+        <tbody id="topProductsBody">
+          <tr><td colspan="4" class="text-center">Đang tải...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  
+  <!-- Stock Value -->
+  <div class="card" style="flex: 1;">
+    <div class="card-header">
+      <h3 style="margin: 0;"><i class="fa-solid fa-coins text-success"></i> Giá trị Tồn kho</h3>
+    </div>
+    <div style="padding: 30px; text-align: center;">
+      <div style="width: 150px; height: 150px; border-radius: 50%; background: var(--success-bg); border: 4px solid var(--success); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 3rem; color: var(--success);">
+        <i class="fa-solid fa-vault"></i>
+      </div>
+      <h2 style="font-size: 2.5rem; margin-bottom: 10px; color: var(--success);" id="stockValueDisplay">0 ₫</h2>
+      <p class="text-muted" style="font-size: 1.1rem;">Tổng: <span id="stockItemsDisplay" style="color: var(--text-primary); font-weight: bold;">0</span> sản phẩm trong kho</p>
+    </div>
+  </div>
+</div>
+
+{{#section 'script'}}
+<script>
+  let chart = null;
+  
+  function formatCurrency(amount) {
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+  }
+  
+  // Set default dates (last 30 days)
+  document.addEventListener('DOMContentLoaded', () => {
+    const end = new Date();
+    const start = new Date();
+    start.setDate(start.getDate() - 30);
+    
+    document.getElementById('endDate').value = end.toISOString().split('T')[0];
+    document.getElementById('startDate').value = start.toISOString().split('T')[0];
+    
+    loadReportData();
+    loadTopProducts();
+    loadStockValue();
+  });
+  
+  async function loadReportData() {
+    const startDate = document.getElementById('startDate').value;
+    const endDate = document.getElementById('endDate').value;
+    const query = `?startDate=${startDate}&endDate=${endDate}`;
+    
+    try {
+      // Load Summary
+      const sumRes = await fetch(`/api/v1/reports/revenue-profit${query}`);
+      const sumResult = await sumRes.json();
+      
+      if(sumResult.success) {
+        document.getElementById('totalOrders').innerText = sumResult.data.count;
+        document.getElementById('totalRevenue').innerText = formatCurrency(sumResult.data.totalRevenue);
+        document.getElementById('totalProfit').innerText = formatCurrency(sumResult.data.totalProfit);
+      }
+      
+      // Load Chart Data
+      const chartRes = await fetch(`/api/v1/reports/chart-data${query}`);
+      const chartResult = await chartRes.json();
+      
+      if(chartResult.success) {
+        renderChart(chartResult.data);
+      }
+      
+    } catch(err) {
+      console.error(err);
+    }
+  }
+  
+  function renderChart(data) {
+    const ctx = document.getElementById('revenueChart').getContext('2d');
+    
+    const labels = data.map(d => {
+      const date = new Date(d._id);
+      return `${date.getDate()}/${date.getMonth()+1}`;
+    });
+    const revenues = data.map(d => d.revenue);
+    const profits = data.map(d => d.profit);
+    
+    if (chart) {
+      chart.destroy();
+    }
+    
+    Chart.defaults.color = '#a0a0b5';
+    Chart.defaults.font.family = "'Outfit', sans-serif";
+    
+    chart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: 'Doanh thu (VNĐ)',
+            data: revenues,
+            backgroundColor: 'rgba(59, 130, 246, 0.7)',
+            borderColor: '#3b82f6',
+            borderWidth: 1,
+            borderRadius: 4
+          },
+          {
+            label: 'Lợi nhuận (VNĐ)',
+            data: profits,
+            type: 'line',
+            backgroundColor: 'rgba(99, 102, 241, 1)',
+            borderColor: '#6366f1',
+            borderWidth: 3,
+            tension: 0.3,
+            pointBackgroundColor: '#6366f1'
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'top' },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                let label = context.dataset.label || '';
+                if (label) {
+                  label += ': ';
+                }
+                if (context.parsed.y !== null) {
+                  label += formatCurrency(context.parsed.y);
+                }
+                return label;
+              }
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+            ticks: {
+              callback: function(value) {
+                if (value >= 1000000) {
+                  return (value / 1000000) + 'Tr';
+                }
+                if (value >= 1000) {
+                  return (value / 1000) + 'K';
+                }
+                return value;
+              }
+            }
+          },
+          x: {
+            grid: { display: false }
+          }
+        }
+      }
+    });
+  }
+  
+  async function loadTopProducts() {
+    try {
+      const res = await fetch('/api/v1/reports/top-products?limit=5');
+      const result = await res.json();
+      
+      const tbody = document.getElementById('topProductsBody');
+      if (result.success && result.data.length > 0) {
+        let html = '';
+        result.data.forEach((p, i) => {
+          let badgeClass = i === 0 ? 'badge-warning' : (i === 1 ? 'badge-info' : 'badge-primary');
+          html += `
+            <tr>
+              <td><span style="font-family: monospace;">${p.sku}</span></td>
+              <td style="font-weight: 500;">${p.name}</td>
+              <td><span class="badge ${badgeClass}">${p.totalQuantity}</span></td>
+              <td style="color: var(--success); font-weight: 600;">${formatCurrency(p.totalProfit)}</td>
+            </tr>
+          `;
+        });
+        tbody.innerHTML = html;
+      } else {
+        tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Chưa có dữ liệu</td></tr>';
+      }
+    } catch(err) {
+      console.error(err);
+    }
+  }
+  
+  async function loadStockValue() {
+    try {
+      const res = await fetch('/api/v1/reports/stock-value');
+      const result = await res.json();
+      
+      if (result.success) {
+        document.getElementById('stockValueDisplay').innerText = formatCurrency(result.data.totalValue);
+        document.getElementById('stockItemsDisplay').innerText = result.data.totalItems.toLocaleString('vi-VN');
+      }
+    } catch(err) {
+      console.error(err);
+    }
+  }
+</script>
+{{/section}}

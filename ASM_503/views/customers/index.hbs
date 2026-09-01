@@ -1,0 +1,117 @@
+<div class="card">
+  <div class="card-header">
+    <div class="d-flex align-items-center gap-3">
+      <i class="fa-solid fa-users text-muted"></i>
+      <h3 style="margin: 0;">Khách Hàng</h3>
+    </div>
+    <button class="btn btn-primary" onclick="openModal('addCustomerModal')">
+      <i class="fa-solid fa-plus"></i> Thêm Khách Hàng
+    </button>
+  </div>
+  
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Tên khách hàng</th>
+          <th>Loại</th>
+          <th>Số điện thoại</th>
+          <th>Email</th>
+          <th>Tổng chi tiêu</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each customers}}
+        <tr>
+          <td style="font-weight: 500; color: var(--accent-primary);">{{this.name}}</td>
+          <td>{{{customerTypeBadge this.type}}}</td>
+          <td>{{this.phone}}</td>
+          <td>{{this.email}}</td>
+          <td style="font-weight: 600;">{{formatCurrency this.totalSpent}}</td>
+        </tr>
+        {{else}}
+        <tr>
+          <td colspan="5" class="text-center text-muted">Chưa có khách hàng nào</td>
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Add Customer Modal -->
+<div id="addCustomerModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Thêm Khách Hàng</h3>
+      <span class="close-modal" onclick="closeModal('addCustomerModal')">&times;</span>
+    </div>
+    <div class="modal-body">
+      <form id="formAddCustomer">
+        <div class="form-group">
+          <label class="form-label">Tên khách hàng</label>
+          <input type="text" class="form-control" name="name" required>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+          <div class="form-group">
+            <label class="form-label">Số điện thoại</label>
+            <input type="text" class="form-control" name="phone">
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Loại khách hàng</label>
+            <select class="form-control form-select" name="type">
+              <option value="retail">Khách lẻ</option>
+              <option value="wholesale">Khách sỉ</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input type="email" class="form-control" name="email">
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('addCustomerModal')">Hủy</button>
+      <button class="btn btn-primary" onclick="submitCustomer()">Lưu lại</button>
+    </div>
+  </div>
+</div>
+
+{{#section 'script'}}
+<script>
+  function openModal(id) {
+    document.getElementById(id).style.display = 'block';
+  }
+  
+  function closeModal(id) {
+    document.getElementById(id).style.display = 'none';
+  }
+  
+  async function submitCustomer() {
+    const form = document.getElementById('formAddCustomer');
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData);
+    
+    try {
+      const res = await fetch('/api/v1/customers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      
+      const result = await res.json();
+      if(result.success) {
+        window.location.reload();
+      } else {
+        alert(result.message);
+      }
+    } catch(err) {
+      alert('Có lỗi xảy ra');
+    }
+  }
+</script>
+{{/section}}

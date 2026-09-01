@@ -1,0 +1,22 @@
+<div class="page-header"><h2>🛒 Đơn hàng</h2><a href="/orders/create" class="btn btn-primary">+ Tạo đơn hàng</a></div>
+<div class="table-container">
+  <div class="table-header">
+    <form class="filter-bar" method="GET" action="/orders">
+      <div class="search-input"><input type="text" name="search" class="form-control" placeholder="Tìm mã đơn hàng..." value="{{search}}"></div>
+      <select name="status" class="form-control"><option value="">-- Trạng thái --</option><option value="pending" {{selected status "pending"}}>Chờ xử lý</option><option value="confirmed" {{selected status "confirmed"}}>Đã xác nhận</option><option value="shipping" {{selected status "shipping"}}>Đang giao</option><option value="completed" {{selected status "completed"}}>Hoàn thành</option><option value="cancelled" {{selected status "cancelled"}}>Đã hủy</option></select>
+      <button type="submit" class="btn btn-outline btn-sm">Lọc</button>
+    </form>
+  </div>
+  {{#if orders.length}}
+  <table><thead><tr><th>Mã đơn</th><th>Khách hàng</th><th>Ngày đặt</th><th>Trạng thái</th><th>Tổng tiền</th><th>Người tạo</th><th>Thao tác</th></tr></thead>
+  <tbody>{{#each orders}}<tr>
+    <td><a href="/orders/{{this.id}}"><strong>{{this.orderCode}}</strong></a></td>
+    <td>{{#if this.customer}}{{this.customer.name}}{{/if}}</td>
+    <td>{{formatDate this.orderDate}}</td>
+    <td>{{{statusBadge this.status}}}</td>
+    <td><strong>{{formatCurrency this.totalAmount}}</strong></td>
+    <td>{{#if this.user}}{{this.user.fullName}}{{/if}}</td>
+    <td><a href="/orders/{{this.id}}" class="btn btn-outline btn-sm">👁️ Chi tiết</a></td>
+  </tr>{{/each}}</tbody></table>
+  {{else}}<div class="empty-state"><div class="empty-icon">🛒</div><h3>Chưa có đơn hàng</h3><a href="/orders/create" class="btn btn-primary mt-2">+ Tạo đơn hàng</a></div>{{/if}}
+</div>

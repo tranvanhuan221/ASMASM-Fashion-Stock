@@ -1,0 +1,289 @@
+<div class="card mb-4">
+  <div class="card-header">
+    <h3><i class="fa-solid fa-minus-circle text-muted"></i> Tạo Phiếu Xuất Kho</h3>
+  </div>
+  
+  <div class="row" style="display: flex; gap: 30px;">
+    <!-- Thông tin chung -->
+    <div style="flex: 1;">
+      <h4 class="mb-4" style="color: var(--accent-primary); border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">Thông tin chung</h4>
+      
+      <div class="form-group">
+        <label class="form-label">Mã phiếu</label>
+        <input type="text" class="form-control" id="receiptCode" value="{{receiptCode}}" readonly>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">Khách hàng</label>
+        <select class="form-control form-select" id="customerId" required>
+          <option value="">-- Chọn khách hàng --</option>
+          {{#each customers}}
+          <option value="{{this._id}}">{{this.name}} - {{this.phone}}</option>
+          {{/each}}
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">Lý do xuất</label>
+        <select class="form-control form-select" id="reason" required>
+          <option value="sell">Bán hàng</option>
+          <option value="return">Trả hàng cho NCC</option>
+          <option value="damaged">Hàng hỏng / Tiêu hủy</option>
+          <option value="other">Lý do khác</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">Ghi chú</label>
+        <textarea class="form-control" id="note" rows="3"></textarea>
+      </div>
+      
+      <div class="alert alert-info" style="font-size: 0.9rem;">
+        <i class="fa-solid fa-circle-info"></i>
+        Hệ thống sử dụng phương pháp <b>FIFO</b> (First In - First Out) để tính toán giá vốn và lợi nhuận cho từng sản phẩm xuất kho.
+      </div>
+    </div>
+    
+    <!-- Thêm sản phẩm -->
+    <div style="flex: 2; border-left: 1px solid var(--border-color); padding-left: 30px;">
+      <h4 class="mb-4" style="color: var(--accent-primary); border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">Chi tiết hàng xuất</h4>
+      
+      <!-- Form add item -->
+      <div class="glass" style="padding: 20px; border-radius: var(--radius-md); margin-bottom: 20px;">
+        <div class="form-group">
+          <label class="form-label">Sản phẩm trong kho</label>
+          <select class="form-control form-select" id="tempStockItem">
+            <option value="">-- Chọn sản phẩm có sẵn --</option>
+            {{#each stockItems}}
+            <option value="{{this._id}}" 
+                    data-name="{{this.product.name}}"
+                    data-sku="{{this.product.sku}}"
+                    data-path="Khu {{this.shelf.lot.zone.code}} > Lô {{this.shelf.lot.code}} > Kệ {{this.shelf.code}}"
+                    data-max="{{this.quantity}}"
+                    data-price="{{this.product.price}}">
+              [{{this.product.sku}}] {{this.product.name}} | Tồn: {{this.quantity}} | Tại: Kệ {{this.shelf.code}}
+            </option>
+            {{/each}}
+          </select>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label">Số lượng xuất (Tối đa: <span id="maxQtyDisplay">0</span>)</label>
+            <input type="number" class="form-control" id="tempQty" min="1" value="1">
+          </div>
+          
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label">Giá xuất / Đơn vị</label>
+            <input type="number" class="form-control" id="tempPrice" min="0" placeholder="VNĐ">
+          </div>
+        </div>
+        
+        <button type="button" class="btn btn-outline" style="width: 100%; border-color: var(--accent-primary); color: var(--accent-primary);" onclick="addItem()">
+          <i class="fa-solid fa-plus"></i> Thêm vào danh sách xuất
+        </button>
+      </div>
+      
+      <!-- Items table -->
+      <div class="table-responsive">
+        <table class="table" id="itemsTable">
+          <thead>
+            <tr>
+              <th>Sản phẩm</th>
+              <th>Vị trí lấy hàng</th>
+              <th>SL</th>
+              <th>Giá bán</th>
+              <th>Thành tiền</th>
+              <th>Xóa</th>
+            </tr>
+          </thead>
+          <tbody id="itemsBody">
+            <tr id="emptyRow">
+              <td colspan="6" class="text-center text-muted">Chưa có sản phẩm nào</td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <th colspan="4" class="text-right">Tổng cộng:</th>
+              <th colspan="2" id="totalAmountDisplay" style="color: var(--info); font-size: 1.2rem;">0 ₫</th>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      
+      <div class="text-right mt-4">
+        <a href="/export" class="btn btn-outline mr-2">Hủy</a>
+        <button class="btn btn-primary" id="btnSubmit" onclick="submitReceipt()" disabled>
+          <i class="fa-solid fa-save"></i> Hoàn Thành Phiếu Xuất
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{{#section 'script'}}
+<script>
+  let exportItems = [];
+  
+  function formatCurrency(amount) {
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+  }
+  
+  // Auto-fill price and max qty when selecting stock item
+  document.getElementById('tempStockItem').addEventListener('change', function() {
+    const selected = this.options[this.selectedIndex];
+    if (selected.value) {
+      document.getElementById('tempPrice').value = selected.getAttribute('data-price');
+      document.getElementById('maxQtyDisplay').innerText = selected.getAttribute('data-max');
+      document.getElementById('tempQty').max = selected.getAttribute('data-max');
+    } else {
+      document.getElementById('tempPrice').value = '';
+      document.getElementById('maxQtyDisplay').innerText = '0';
+      document.getElementById('tempQty').max = '';
+    }
+  });
+  
+  function addItem() {
+    const stockSelect = document.getElementById('tempStockItem');
+    const qtyInput = document.getElementById('tempQty');
+    const priceInput = document.getElementById('tempPrice');
+    
+    if (!stockSelect.value || !qtyInput.value || !priceInput.value) {
+      alert('Vui lòng nhập đầy đủ thông tin');
+      return;
+    }
+    
+    const selected = stockSelect.options[stockSelect.selectedIndex];
+    const stockItemId = stockSelect.value;
+    const productName = `[${selected.getAttribute('data-sku')}] ${selected.getAttribute('data-name')}`;
+    const shelfPath = selected.getAttribute('data-path');
+    const maxQty = parseInt(selected.getAttribute('data-max'));
+    
+    const quantity = parseInt(qtyInput.value);
+    const exportPrice = parseFloat(priceInput.value);
+    
+    if (quantity > maxQty) {
+      alert(`Số lượng xuất (${quantity}) vượt quá tồn kho hiện tại (${maxQty})`);
+      return;
+    }
+    
+    // Check if already added
+    const existingIndex = exportItems.findIndex(i => i.stockItemId === stockItemId);
+    if (existingIndex !== -1) {
+      const newQty = exportItems[existingIndex].quantity + quantity;
+      if (newQty > maxQty) {
+        alert(`Tổng số lượng xuất (${newQty}) vượt quá tồn kho hiện tại (${maxQty})`);
+        return;
+      }
+      exportItems[existingIndex].quantity = newQty;
+      exportItems[existingIndex].subTotal = newQty * exportPrice;
+      exportItems[existingIndex].exportPrice = exportPrice;
+    } else {
+      const subTotal = quantity * exportPrice;
+      exportItems.push({
+        stockItemId,
+        productName,
+        shelfPath,
+        quantity,
+        exportPrice,
+        subTotal
+      });
+    }
+    
+    // Clear inputs
+    stockSelect.value = '';
+    qtyInput.value = '1';
+    priceInput.value = '';
+    document.getElementById('maxQtyDisplay').innerText = '0';
+    
+    renderItems();
+  }
+  
+  function removeItem(index) {
+    exportItems.splice(index, 1);
+    renderItems();
+  }
+  
+  function renderItems() {
+    const tbody = document.getElementById('itemsBody');
+    const btnSubmit = document.getElementById('btnSubmit');
+    
+    if (exportItems.length === 0) {
+      tbody.innerHTML = '<tr id="emptyRow"><td colspan="6" class="text-center text-muted">Chưa có sản phẩm nào</td></tr>';
+      document.getElementById('totalAmountDisplay').innerText = '0 ₫';
+      btnSubmit.disabled = true;
+      return;
+    }
+    
+    btnSubmit.disabled = false;
+    let html = '';
+    let total = 0;
+    
+    exportItems.forEach((item, index) => {
+      total += item.subTotal;
+      html += `
+        <tr>
+          <td><div style="font-weight: 500;">${item.productName}</div></td>
+          <td><div style="font-size: 0.85rem;" class="text-muted">${item.shelfPath}</div></td>
+          <td><b>${item.quantity}</b></td>
+          <td>${formatCurrency(item.exportPrice)}</td>
+          <td style="color: var(--info); font-weight: 600;">${formatCurrency(item.subTotal)}</td>
+          <td>
+            <button class="btn btn-danger" style="padding: 4px 8px;" onclick="removeItem(${index})">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </td>
+        </tr>
+      `;
+    });
+    
+    tbody.innerHTML = html;
+    document.getElementById('totalAmountDisplay').innerText = formatCurrency(total);
+  }
+  
+  async function submitReceipt() {
+    const customerId = document.getElementById('customerId').value;
+    if (!customerId) {
+      alert('Vui lòng chọn khách hàng');
+      return;
+    }
+    
+    if (exportItems.length === 0) {
+      alert('Vui lòng thêm ít nhất 1 sản phẩm');
+      return;
+    }
+    
+    const data = {
+      receiptCode: document.getElementById('receiptCode').value,
+      customerId,
+      reason: document.getElementById('reason').value,
+      note: document.getElementById('note').value,
+      items: exportItems
+    };
+    
+    try {
+      document.getElementById('btnSubmit').disabled = true;
+      document.getElementById('btnSubmit').innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý FIFO...';
+      
+      const res = await fetch('/api/v1/export/receipts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      
+      const result = await res.json();
+      if(result.success) {
+        window.location.href = '/export';
+      } else {
+        alert(result.message);
+        document.getElementById('btnSubmit').disabled = false;
+        document.getElementById('btnSubmit').innerHTML = '<i class="fa-solid fa-save"></i> Hoàn Thành Phiếu Xuất';
+      }
+    } catch(err) {
+      alert('Có lỗi xảy ra');
+      document.getElementById('btnSubmit').disabled = false;
+      document.getElementById('btnSubmit').innerHTML = '<i class="fa-solid fa-save"></i> Hoàn Thành Phiếu Xuất';
+    }
+  }
+</script>
+{{/section}}

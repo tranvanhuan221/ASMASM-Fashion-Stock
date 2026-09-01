@@ -1,0 +1,44 @@
+<div class="card">
+  <div class="card-header">
+    <div class="d-flex align-items-center gap-3">
+      <i class="fa-solid fa-arrow-right-from-bracket text-muted"></i>
+      <h3 style="margin: 0;">Lịch sử Xuất kho</h3>
+    </div>
+    <a href="/export/create" class="btn btn-primary">
+      <i class="fa-solid fa-plus"></i> Tạo Phiếu Xuất
+    </a>
+  </div>
+  
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Mã phiếu</th>
+          <th>Ngày xuất</th>
+          <th>Lý do</th>
+          <th>Khách hàng</th>
+          <th>Tổng tiền</th>
+          <th>Lợi nhuận</th>
+          <th>Trạng thái</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each receipts}}
+        <tr>
+          <td><a href="/export/{{this._id}}" style="color: var(--accent-primary); font-weight: 600; text-decoration: none;">{{this.receiptCode}}</a></td>
+          <td>{{formatDateTime this.exportDate}}</td>
+          <td>{{{reasonBadge this.reason}}}</td>
+          <td>{{this.customer.name}}</td>
+          <td style="font-weight: 600; color: var(--info);">{{formatCurrency this.totalAmount}}</td>
+          <td>{{{profitBadge this.totalProfit}}}</td>
+          <td>{{{statusBadge this.status}}}</td>
+        </tr>
+        {{else}}
+        <tr>
+          <td colspan="7" class="text-center text-muted">Chưa có phiếu xuất nào</td>
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+</div>

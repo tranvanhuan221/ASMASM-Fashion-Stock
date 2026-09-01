@@ -1,0 +1,8 @@
+<div class="page-header"><h2>{{#if category}}✏️ Sửa danh mục{{else}}+ Thêm danh mục{{/if}}</h2><a href="/categories" class="btn btn-outline">← Quay lại</a></div>
+<div class="card">
+  <form action="{{#if category}}/categories/{{category.id}}{{else}}/categories{{/if}}" method="POST">
+    <div class="form-group"><label for="name">Tên danh mục *</label><input type="text" id="name" name="name" class="form-control" required value="{{category.name}}" placeholder="VD: Áo sơ mi"></div>
+    <div class="form-group"><label for="description">Mô tả</label><textarea id="description" name="description" class="form-control" rows="3" placeholder="Mô tả danh mục...">{{category.description}}</textarea></div>
+    <div class="form-actions"><button type="submit" class="btn btn-primary">💾 {{#if category}}Cập nhật{{else}}Tạo mới{{/if}}</button><a href="/categories" class="btn btn-outline">Hủy</a></div>
+  </form>
+</div>

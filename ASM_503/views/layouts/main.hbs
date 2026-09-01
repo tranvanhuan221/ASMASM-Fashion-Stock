@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{title}} - GenZ Warehouse</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">
+          <i class="fa-solid fa-box-open"></i>
+        </div>
+        <div class="sidebar-title">GenZ WMS</div>
+      </div>
+      
+      <ul class="nav-menu">
+        <li class="nav-item">
+          <a href="/dashboard" class="nav-link">
+            <i class="fa-solid fa-chart-pie"></i> Bảng điều khiển
+          </a>
+        </li>
+        
+        <li class="nav-item">
+          <a href="/warehouse" class="nav-link">
+            <i class="fa-solid fa-warehouse"></i> Sơ đồ kho
+          </a>
+        </li>
+        
+        <li class="nav-item">
+          <a href="/inventory" class="nav-link">
+            <i class="fa-solid fa-arrow-right-to-bracket"></i> Nhập kho
+          </a>
+        </li>
+        
+        <li class="nav-item">
+          <a href="/export" class="nav-link">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i> Xuất kho
+          </a>
+        </li>
+        
+        <li class="nav-item">
+          <a href="/products" class="nav-link">
+            <i class="fa-solid fa-tags"></i> Sản phẩm
+          </a>
+        </li>
+        
+        <li class="nav-item">
+          <a href="/categories" class="nav-link">
+            <i class="fa-solid fa-layer-group"></i> Danh mục
+          </a>
+        </li>
+        
+        <li class="nav-item">
+          <a href="/suppliers" class="nav-link">
+            <i class="fa-solid fa-truck"></i> Nhà cung cấp
+          </a>
+        </li>
+        
+        <li class="nav-item">
+          <a href="/customers" class="nav-link">
+            <i class="fa-solid fa-users"></i> Khách hàng
+          </a>
+        </li>
+        
+        {{#isManagerOrAdmin user.role}}
+        <li class="nav-item">
+          <a href="/reports" class="nav-link">
+            <i class="fa-solid fa-chart-line"></i> Báo cáo & Thống kê
+          </a>
+        </li>
+        {{/isManagerOrAdmin}}
+      </ul>
+    </aside>
+    
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Topbar -->
+      <header class="topbar glass">
+        <div class="page-title">
+          <h2>{{title}}</h2>
+        </div>
+        
+        <div class="user-profile d-flex align-items-center gap-3">
+          <div class="user-info text-right">
+            <div style="font-weight: 600;">{{user.fullName}}</div>
+            <div class="text-muted" style="font-size: 0.8rem;">{{user.role}}</div>
+          </div>
+          <div style="width: 40px; height: 40px; border-radius: 50%; background-color: var(--accent-primary); display: flex; align-items: center; justify-content: center; font-weight: bold; color: white;">
+            {{user.username.[0]}}
+          </div>
+          <a href="/logout" class="btn btn-outline" style="padding: 6px 12px; margin-left: 10px;">
+            <i class="fa-solid fa-sign-out-alt"></i>
+          </a>
+        </div>
+      </header>
+      
+      <!-- Page Content -->
+      <div class="page-content">
+        <!-- Flash Messages -->
+        {{#if success_msg}}
+        <div class="alert alert-success">
+          <i class="fa-solid fa-check-circle"></i> {{success_msg}}
+        </div>
+        {{/if}}
+        
+        {{#if error_msg}}
+        <div class="alert alert-danger">
+          <i class="fa-solid fa-exclamation-circle"></i> {{error_msg}}
+        </div>
+        {{/if}}
+        
+        {{{body}}}
+      </div>
+    </main>
+  </div>
+  
+  <script>
+    // Simple script to set active nav link based on current URL
+    document.addEventListener('DOMContentLoaded', () => {
+      const currentPath = window.location.pathname;
+      const navLinks = document.querySelectorAll('.nav-link');
+      
+      navLinks.forEach(link => {
+        const href = link.getAttribute('href');
+        // Match exact or starts with (e.g. /inventory/create matches /inventory)
+        if (currentPath === href || (href !== '/' && currentPath.startsWith(href))) {
+          link.classList.add('active');
+        } else {
+          link.classList.remove('active');
+        }
+      });
+      
+      // Auto dismiss alerts after 5 seconds
+      setTimeout(() => {
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(alert => {
+          alert.style.opacity = '0';
+          setTimeout(() => alert.remove(), 300);
+        });
+      }, 5000);
+    });
+  </script>
+  
+  <!-- Inject page specific scripts -->
+  {{{_sections.script}}}
+</body>
+</html>

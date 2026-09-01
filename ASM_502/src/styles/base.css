@@ -1,0 +1,138 @@
+/* =============================================================
+   GENZ FASHION STORE - GLOBAL STYLES
+   File: src/styles/base.css
+   Description: CSS variables, reset, typography
+   ============================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
+
+/* ---- CSS Variables ---- */
+:root {
+  --primary:       #da291c;
+  --primary-dark:  #b81f14;
+  --primary-light: #ffebee;
+  --text-primary:  #333333;
+  --text-secondary:#666666;
+  --border:        #e1e1e1;
+  --bg-light:      #f8f8f8;
+  --surface:       #ffffff;
+  --nav-bg:        #333f48;
+  --radius:        4px;
+  --shadow-sm:     0 2px 8px rgba(0,0,0,0.06);
+  --shadow-md:     0 4px 16px rgba(0,0,0,0.10);
+  --transition:    all 0.2s ease;
+}
+
+/* ---- Reset ---- */
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  color: var(--text-primary);
+  background-color: var(--surface);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+  transition: var(--transition);
+}
+
+img { max-width: 100%; display: block; }
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+  font-size: inherit;
+  border: none;
+  background: none;
+}
+
+button { cursor: pointer; }
+
+ul, ol { list-style: none; }
+
+/* ---- Utility Classes ---- */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 15px;
+}
+
+.d-flex          { display: flex; }
+.align-center    { align-items: center; }
+.justify-between { justify-content: space-between; }
+.text-center     { text-align: center; }
+.text-right      { text-align: right; }
+
+.mt-1 { margin-top: 8px; }
+.mt-2 { margin-top: 16px; }
+.mt-3 { margin-top: 24px; }
+.mt-4 { margin-top: 32px; }
+.mb-1 { margin-bottom: 8px; }
+.mb-2 { margin-bottom: 16px; }
+.mb-3 { margin-bottom: 24px; }
+
+/* ---- Skeleton Loading ---- */
+.skeleton .skeleton-img {
+  background: #e0e0e0;
+  padding-top: 133%;
+  border-radius: 4px;
+  animation: skeletonPulse 1.5s infinite;
+}
+.skeleton .skeleton-text {
+  background: #e0e0e0;
+  height: 14px;
+  border-radius: 4px;
+  margin-top: 10px;
+  animation: skeletonPulse 1.5s infinite;
+}
+.skeleton .skeleton-text.short { width: 60%; }
+
+@keyframes skeletonPulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.5; }
+}
+
+/* ---- Toast Notifications ---- */
+.toast-notification {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 20px;
+  border-radius: 8px;
+  background: #333;
+  color: white;
+  font-size: 14px;
+  box-shadow: var(--shadow-md);
+  opacity: 0;
+  transform: translateY(16px);
+  transition: all 0.3s ease;
+  max-width: 360px;
+}
+.toast-notification.show { opacity: 1; transform: translateY(0); }
+.toast-success { background: #1a7a4a; }
+.toast-error   { background: #da291c; }
+.toast-warning { background: #d97706; }
+.toast-info    { background: #0071e3; }
+
+@media (max-width: 768px) {
+  .container { padding: 0 12px; }
+}

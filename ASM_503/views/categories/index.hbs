@@ -1,0 +1,140 @@
+<div class="card">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <div class="d-flex align-items-center gap-3">
+      <i class="fa-solid fa-layer-group text-muted"></i>
+      <h3 style="margin: 0;">Quản lý Danh mục</h3>
+    </div>
+    {{#isManagerOrAdmin user.role}}
+    <button class="btn btn-primary" onclick="openModal('addCategoryModal')">
+      <i class="fa-solid fa-plus"></i> Thêm Danh mục
+    </button>
+    {{/isManagerOrAdmin}}
+  </div>
+
+  <div class="card-body border-bottom">
+    <form action="/categories" method="GET" class="row g-3 align-items-center">
+      <div class="col-md-4">
+        <input type="text" name="search" class="form-control" placeholder="Tìm theo tên danh mục..." value="{{search}}">
+      </div>
+      <div class="col-md-4">
+        <select name="parentId" class="form-control">
+          <option value="">-- Tất cả danh mục --</option>
+          <option value="none" {{#if (eq parentId "none")}}selected{{/if}}>-- Các danh mục gốc --</option>
+          {{#each parentCategories}}
+            <option value="{{this._id}}" {{#if (eq ../parentId this._id)}}selected{{/if}}>Thành viên của: {{this.name}}</option>
+          {{/each}}
+        </select>
+      </div>
+      <div class="col-md-4 d-flex gap-2">
+        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-filter"></i> Lọc</button>
+        <a href="/categories" class="btn btn-outline">Xóa lọc</a>
+      </div>
+    </form>
+  </div>
+  
+  <div class="table-responsive">
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th>STT</th>
+          <th>Tên danh mục</th>
+          <th>Danh mục cha</th>
+          <th>Mô tả</th>
+          <th>Ngày tạo</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each categories}}
+        <tr>
+          <td>{{inc @index}}</td>
+          <td style="font-weight: 500; color: var(--accent-primary);">{{this.name}}</td>
+          <td>
+            {{#if this.parentId}}
+              <span class="badge bg-info text-dark">{{this.parentId.name}}</span>
+            {{else}}
+              <span class="badge bg-secondary">Danh mục gốc</span>
+            {{/if}}
+          </td>
+          <td>{{this.description}}</td>
+          <td>{{formatDate this.createdAt}}</td>
+        </tr>
+        {{else}}
+        <tr>
+          <td colspan="4" class="text-center text-muted">Không tìm thấy danh mục nào</td>
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Add Category Modal -->
+<div id="addCategoryModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Thêm Danh Mục Mới</h3>
+      <span class="close-modal" onclick="closeModal('addCategoryModal')">&times;</span>
+    </div>
+    <div class="modal-body">
+      <form id="formAddCategory">
+        <div class="form-group mb-3">
+          <label class="form-label">Tên danh mục *</label>
+          <input type="text" class="form-control" name="name" required>
+        </div>
+        <div class="form-group mb-3">
+          <label class="form-label">Danh mục cha</label>
+          <select class="form-control" name="parentId">
+            <option value="">-- Không có (Danh mục gốc) --</option>
+            {{#each parentCategories}}
+            <option value="{{this._id}}">{{this.name}}</option>
+            {{/each}}
+          </select>
+          <small class="text-muted">Chọn danh mục cha nếu đây là danh mục con</small>
+        </div>
+        <div class="form-group mb-3">
+          <label class="form-label">Mô tả</label>
+          <textarea class="form-control" name="description" rows="3"></textarea>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('addCategoryModal')">Hủy</button>
+      <button class="btn btn-primary" onclick="submitCategory()">Lưu lại</button>
+    </div>
+  </div>
+</div>
+
+{{#section 'script'}}
+<script>
+  function openModal(id) {
+    document.getElementById(id).style.display = 'block';
+  }
+  
+  function closeModal(id) {
+    document.getElementById(id).style.display = 'none';
+  }
+  
+  async function submitCategory() {
+    const form = document.getElementById('formAddCategory');
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData);
+    
+    try {
+      const res = await fetch('/api/v1/categories', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      
+      const result = await res.json();
+      if(result.success) {
+        window.location.reload();
+      } else {
+        alert(result.message);
+      }
+    } catch(err) {
+      alert('Có lỗi xảy ra');
+    }
+  }
+</script>
+{{/section}}

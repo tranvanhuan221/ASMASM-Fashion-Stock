@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{title}} - GenZ Warehouse</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  
+  <div class="auth-container">
+    <div class="auth-card">
+      <div class="auth-logo">
+        <i class="fa-solid fa-box-open"></i>
+        <h2>GenZ WMS</h2>
+        <p class="text-muted">Hệ thống quản lý kho thông minh</p>
+      </div>
+      
+      <!-- Flash Messages -->
+      {{#if success_msg}}
+      <div class="alert alert-success">
+        <i class="fa-solid fa-check-circle"></i> {{success_msg}}
+      </div>
+      {{/if}}
+      
+      {{#if error_msg}}
+      <div class="alert alert-danger">
+        <i class="fa-solid fa-exclamation-circle"></i> {{error_msg}}
+      </div>
+      {{/if}}
+      
+      {{{body}}}
+    </div>
+  </div>
+  
+</body>
+</html>

@@ -1,0 +1,254 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <p class="text-muted">Quản lý không gian kho (Khu vực > Lô > Kệ)</p>
+  {{#isManagerOrAdmin user.role}}
+  <button class="btn btn-primary" onclick="openModal('addZoneModal')">
+    <i class="fa-solid fa-plus"></i> Thêm Khu Vực
+  </button>
+  {{/isManagerOrAdmin}}
+</div>
+
+<div class="warehouse-map">
+  {{#each zones}}
+  <div class="zone-container">
+    <div class="zone-header d-flex justify-content-between align-items-center">
+      <div class="d-flex align-items-center gap-3">
+        <div class="zone-icon">{{this.code}}</div>
+        <div>
+          <h3 style="margin: 0;">{{this.name}}</h3>
+          <span class="text-muted text-sm">{{this.description}}</span>
+        </div>
+      </div>
+      {{#isManagerOrAdmin ../user.role}}
+      <button class="btn btn-outline" onclick="openAddLotModal('{{this._id}}', '{{this.code}}')">
+        <i class="fa-solid fa-plus"></i> Thêm Lô
+      </button>
+      {{/isManagerOrAdmin}}
+    </div>
+    
+    <div class="lot-grid">
+      {{#each this.lots}}
+      <div class="lot-card">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h4 style="margin: 0; color: var(--accent-primary);">Lô: {{this.code}}</h4>
+          {{#isManagerOrAdmin ../../user.role}}
+          <button class="btn btn-outline" style="padding: 2px 8px; font-size: 0.8rem;" onclick="openAddShelfModal('{{this._id}}', '{{this.code}}')">
+            <i class="fa-solid fa-plus"></i> Kệ
+          </button>
+          {{/isManagerOrAdmin}}
+        </div>
+        <p class="text-muted" style="font-size: 0.85rem; margin-bottom: 10px;">{{this.description}}</p>
+        
+        <div class="shelf-grid">
+          {{#each this.shelves}}
+          <div class="shelf-box" title="{{this.name}}">
+            <span style="font-weight: 600; font-size: 0.9rem;">{{this.code}}</span>
+          </div>
+          {{else}}
+          <div class="text-muted text-center" style="grid-column: 1/-1; font-size: 0.85rem;">Chưa có kệ hàng</div>
+          {{/each}}
+        </div>
+      </div>
+      {{else}}
+      <div class="text-muted">Khu vực này chưa có lô hàng nào.</div>
+      {{/each}}
+    </div>
+  </div>
+  {{else}}
+  <div class="card text-center p-5">
+    <div class="text-muted mb-3"><i class="fa-solid fa-warehouse fa-3x"></i></div>
+    <h4>Kho hàng trống</h4>
+    <p class="text-muted">Hãy bắt đầu bằng việc tạo các khu vực trong kho.</p>
+  </div>
+  {{/each}}
+</div>
+
+<!-- Add Zone Modal -->
+<div id="addZoneModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Thêm Khu Vực</h3>
+      <span class="close-modal" onclick="closeModal('addZoneModal')">&times;</span>
+    </div>
+    <div class="modal-body">
+      <form id="formAddZone">
+        <div class="form-group">
+          <label class="form-label">Mã khu vực (Ví dụ: A, B, C...)</label>
+          <input type="text" class="form-control" name="code" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tên khu vực (Ví dụ: Khu vực áo thun)</label>
+          <input type="text" class="form-control" name="name" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Mô tả</label>
+          <input type="text" class="form-control" name="description">
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('addZoneModal')">Hủy</button>
+      <button class="btn btn-primary" onclick="submitZone()">Lưu lại</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Lot Modal -->
+<div id="addLotModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Thêm Lô Hàng</h3>
+      <span class="close-modal" onclick="closeModal('addLotModal')">&times;</span>
+    </div>
+    <div class="modal-body">
+      <form id="formAddLot">
+        <input type="hidden" id="lotZoneId" name="zone">
+        <div class="form-group">
+          <label class="form-label">Khu vực</label>
+          <input type="text" class="form-control" id="lotZoneCode" readonly disabled>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Mã Lô (Ví dụ: 01, 02... -> Thành A-01)</label>
+          <input type="text" class="form-control" name="code" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tên Lô</label>
+          <input type="text" class="form-control" name="name" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Mô tả</label>
+          <input type="text" class="form-control" name="description">
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('addLotModal')">Hủy</button>
+      <button class="btn btn-primary" onclick="submitLot()">Lưu lại</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Shelf Modal -->
+<div id="addShelfModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Thêm Kệ Hàng</h3>
+      <span class="close-modal" onclick="closeModal('addShelfModal')">&times;</span>
+    </div>
+    <div class="modal-body">
+      <form id="formAddShelf">
+        <input type="hidden" id="shelfLotId" name="lot">
+        <div class="form-group">
+          <label class="form-label">Thuộc Lô</label>
+          <input type="text" class="form-control" id="shelfLotCode" readonly disabled>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Mã Kệ (Ví dụ: K1, K2...)</label>
+          <input type="text" class="form-control" name="code" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tên/Ghi chú kệ</label>
+          <input type="text" class="form-control" name="name" required>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('addShelfModal')">Hủy</button>
+      <button class="btn btn-primary" onclick="submitShelf()">Lưu lại</button>
+    </div>
+  </div>
+</div>
+
+{{#section 'script'}}
+<script>
+  function openModal(id) {
+    document.getElementById(id).style.display = 'block';
+  }
+  
+  function closeModal(id) {
+    document.getElementById(id).style.display = 'none';
+  }
+  
+  function openAddLotModal(zoneId, zoneCode) {
+    document.getElementById('lotZoneId').value = zoneId;
+    document.getElementById('lotZoneCode').value = `Khu vực ${zoneCode}`;
+    openModal('addLotModal');
+  }
+  
+  function openAddShelfModal(lotId, lotCode) {
+    document.getElementById('shelfLotId').value = lotId;
+    document.getElementById('shelfLotCode').value = `Lô ${lotCode}`;
+    openModal('addShelfModal');
+  }
+  
+  // Submit handlers with fetch API to the new endpoints we created
+  
+  async function submitZone() {
+    const form = document.getElementById('formAddZone');
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData);
+    
+    try {
+      const res = await fetch('/api/v1/warehouse/zones', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      
+      const result = await res.json();
+      if(result.success) {
+        window.location.reload();
+      } else {
+        alert(result.message);
+      }
+    } catch(err) {
+      alert('Có lỗi xảy ra');
+    }
+  }
+  
+  async function submitLot() {
+    const form = document.getElementById('formAddLot');
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData);
+    
+    try {
+      const res = await fetch('/api/v1/warehouse/lots', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      
+      const result = await res.json();
+      if(result.success) {
+        window.location.reload();
+      } else {
+        alert(result.message);
+      }
+    } catch(err) {
+      alert('Có lỗi xảy ra');
+    }
+  }
+  
+  async function submitShelf() {
+    const form = document.getElementById('formAddShelf');
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData);
+    
+    try {
+      const res = await fetch('/api/v1/warehouse/shelves', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      
+      const result = await res.json();
+      if(result.success) {
+        window.location.reload();
+      } else {
+        alert(result.message);
+      }
+    } catch(err) {
+      alert('Có lỗi xảy ra');
+    }
+  }
+</script>
+{{/section}}
