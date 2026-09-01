@@ -1,10 +1,10 @@
 /**
  * fetchApi.ts
- * Centralized HTTP client — tất cả request gửi đến Backend (ASM_503) tại http://localhost:3005
+ * Centralized HTTP client — tất cả request gửi đến Backend (ASM_503) tại http://localhost:3000
  * Tự động gắn auth headers từ localStorage nếu user đã đăng nhập
  */
 
-const API_URL = "http://localhost:3005";
+const API_URL = "http://localhost:3000";
 
 const getAuthHeaders = (): Record<string, string> => {
   try {

@@ -16,7 +16,7 @@ export class CategoryService extends ApiService<ICategory> {
     let user = JSON.parse(localStorage.getItem("genz_user") || "{}"); // lấy user từ localStorage
     let token = user.token; // lấy token
     
-    let res = await fetch("http://localhost:3005/api/v1/shop/categories", {
+    let res = await fetch("http://localhost:3000/api/v1/shop/categories", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",

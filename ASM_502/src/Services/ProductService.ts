@@ -41,7 +41,7 @@ export class ProductService extends ApiService<IProduct> {
       // Đổi 'hinh' thành 'image' vì Multer backend của chúng ta nhận field tên là 'image'
       formData.append('image', file);
 
-      let res = await fetch('http://localhost:3005/api/v1/shop/upload', {
+      let res = await fetch('http://localhost:3000/api/v1/shop/upload', {
           method: 'POST',
           body: formData
       });
@@ -55,7 +55,7 @@ export class ProductService extends ApiService<IProduct> {
     // trước khi thêm vào csdl thì upload file trước, sau đó lấy link 
     // product.images = [(await this.upload()).url]; // Code mẫu nếu dùng await upload()
     
-    fetch('http://localhost:3005/api/v1/shop/products', {
+    fetch('http://localhost:3000/api/v1/shop/products', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
